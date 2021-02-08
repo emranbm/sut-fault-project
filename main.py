@@ -1,40 +1,5 @@
-from enum import Enum
+from models import Criticality, Task, TaskType
 from typing import List, Optional
-from dataclasses import dataclass
-
-
-class Criticality(Enum):
-    LO = 1
-    HI = 2
-
-
-class TaskType(Enum):
-    PRIMARY = 1
-    RE_EXECUTION = 2
-
-
-@dataclass
-class Task:
-    P: float
-    X: Criticality
-    CLO: float
-    CHI: Optional[float] = None
-    TYPE: TaskType = TaskType.PRIMARY
-
-    def C(self, criticality: Criticality):
-        if criticality == Criticality.LO:
-            return self.CLO
-        else:
-            return self.CHI or self.CLO
-
-    def u(self, criticality):
-        return self.C(criticality) / self.P
-
-    def get_re_execution(self):
-        return Task(self.P, self.X, self.CLO, self.CHI, TaskType.RE_EXECUTION)
-
-    def __repr__(self) -> str:
-        return f'P={self.P}'
 
 
 class AlgorithmException(Exception):
@@ -59,10 +24,11 @@ def U(tasks: List[Task], system_criticality: Criticality, task_criticality: Crit
         included_tasks = [t for t in included_tasks if t.TYPE == tasks_type]
     return sum([t.u(task_criticality) for t in included_tasks])
 
+
 def main():
     global TASKS
     # Append re-executions
-    # TASKS += [t.get_re_execution() for t in TASKS]
+    TASKS += [t.get_re_execution() for t in TASKS]
 
     # Initialization
     gama = [t for t in TASKS if t.X == Criticality.HI]
@@ -94,9 +60,8 @@ def main():
                 x = x2
                 cee.pop(0)
             else:
-                return 1 / x
-        return 1 / x
-
+                return x
+        return x
 
 
 if __name__ == "__main__":
